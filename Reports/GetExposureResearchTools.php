@@ -157,9 +157,18 @@ class GetExposureResearchTools extends Base
 					<td style="padding-right: 1em">Read subject ID from GET variable:</td>
 					<td><input type="text" name="casevar" value="'.htmlspecialchars($getVar).'" style="width: 180px" /></td>
 				</tr><tr>
+					<td style="padding-right: 1em">Data structure:</td>
+					<td>
+						<select name="structure" size="1" style="max-width: 100%">
+							<option value="case">Per participant (many variables, few rows)</option>
+							<option value="page">Per page view (few variables, may rows)</option>
+						</select>
+					</td>
+				</tr><tr>
 					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
 						<input type="checkbox" name="aggregate" value="yes" checked="checked" />
-						Include aggregate reading times per page (sum per page)
+						Include aggregate reading times per page (sum per page)<br>
+						<span style="font-size: 85%">(applicable in per-participant structure, only)</span>
 					</label></td>
 				</tr><tr>
 					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
@@ -168,8 +177,13 @@ class GetExposureResearchTools extends Base
 					</label></td>
 				</tr><tr>
 					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
-						<input type="checkbox" name="clip" value="yes" checked="checked" />
-						Remove extension and query string from URLs (anything after the file name)
+						<input type="checkbox" name="noclip" value="yes" />
+						Retain extension and query string in URLs (anything after the file name)
+					</label></td>
+				</tr><tr>
+					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
+						<input type="checkbox" name="disindex" value="yes" />
+						Distinguish index.html, index.htm, index.php, and homepage (/)
 					</label></td>
 				</tr><tr>
 					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
@@ -178,31 +192,46 @@ class GetExposureResearchTools extends Base
 					</label></td>
 				</tr><tr>
 					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em">
-						Note: All available data will be exported, regardless of the period defined above.
+						<strong>Note:</strong> All available data will be exported, regardless of the period defined above.
 					</td>
 				</tr>
 				</table>
+							
 				<div style="margin-top: 1em">
 					<button type="submit">Download CSV</button>
 				</div>
 				</form>
 
 				<h2>File Structure</h2>
-				<p>There are four groups of columns in the file:</p>
-				<ol style="list-style: decimal; padding-left: 24px; margin-bottom: 30px">
-					<li>Case identification
+				<p>Depending on the file structure selected above, the variables in the result will be:</p>
+				<ul style="list-style: circle; padding-left: 24px; margin-bottom: 30px">
+					<li>Case identification (both structures)
 						<ul style="list-style: circle; padding-left: 24px">
 							<li><strong style="width: 60px; display: inline-block">id</strong> Piwik\'s ID for the visit</li>
 							<li><strong style="width: 60px; display: inline-block">CASE</strong> Case ID retrieved from the URL (see setting GET variable)</li>
-							<li><strong style="width: 60px; display: inline-block">T0</strong> Date and time when the first page was retrieved</li>
 						</ul>
 					</li>
-					<li><span style="width: 60px; display: inline-block"><strong>A1</strong>&ndash;<strong>A<i>n</i></strong></span> Activities performed (pages viewed) during the visit: ID of the first viewed page stored in A1, etc.</li>
-					<li><span style="width: 60px; display: inline-block"><strong>T1</strong>&ndash;<strong>T<i>n</i></strong></span> Times spent per activity (time between retrieving one page and the following one): T1 is the time for A1 in seconds, etc.</li>
-					<li><span style="width: 60px; display: inline-block"><strong>AT</strong></span> Times spent during the visit overall.</li>
-					<li><span style="width: 60px; display: inline-block"><strong>AT_<i>xyz</i></strong></span> Aggregate time spent per activity <i>xyz</i> (e.g., page <i>xyz</i>), in seconds. This block of variables will only be available, if &quot;Include aggregate reading times&quot; has been checked above.</li>
-				</ol>
-				<p><strong>Note:</strong> Piwik will not record the time spent on the most recent page (activity). This affects <strong>T<i>n</i></strong>, <strong>AT</strong>, and <strong>AT_<i>xyz</i></strong>.
+					<li>Structured &quot;per participant&quot;
+						<ul style="list-style: circle; padding-left: 24px">
+							<li><strong style="width: 60px; display: inline-block">T0</strong> Date and time when the first page was retrieved</li>
+							<li><span style="width: 60px; display: inline-block"><strong>A1</strong>&ndash;<strong>A<i>n</i></strong></span> Activities performed (pages viewed) during the visit: ID of the first viewed page stored in A1, etc.</li>
+							<li><span style="width: 60px; display: inline-block"><strong>T1</strong>&ndash;<strong>T<i>n</i></strong></span> Times spent per activity (time between retrieving one page and the following one): T1 is the time for A1 in seconds, etc.</li>
+							<li><span style="width: 60px; display: inline-block"><strong>AT</strong></span> Times spent during the visit overall.</li>
+							<li><span style="width: 60px; display: inline-block"><strong>AT_<i>xyz</i></strong></span> Aggregate time spent per activity <i>xyz</i> (e.g., page <i>xyz</i>), in seconds. This block of variables will only be available, if &quot;Include aggregate reading times&quot; has been checked above.</li>
+						</ul>
+					</li>
+					<li>Structured &quot;per action&quot;
+						<ul style="list-style: circle; padding-left: 24px">
+							<li><span style="width: 60px; display: inline-block"><strong>pos</strong></span> Order of actions (page views) during the visit</li>
+							<li><span style="width: 60px; display: inline-block"><strong>aID</strong></span> Unique ID for the action (page)</li>
+							<li><span style="width: 60px; display: inline-block"><strong>url</strong></span> Description of the action (page URL, usually shortend)</li>
+							<li><span style="width: 60px; display: inline-block"><strong>time</strong></span> Time spent on the action (page)</li>
+							<li><span style="width: 60px; display: inline-block"><strong>ontime</strong></span> Beginning of action [sec], relative to the visit\'s first page retrieval</li>
+							<li><span style="width: 60px; display: inline-block"><strong>astime</strong></span> Absolute timestamp of the action (page view)</li>
+						</ul>
+					</li>
+				</ul>
+				<p><strong>Note:</strong> Piwik will not record the time spent on the most recent page (activity). This affects <strong>T<i>n</i></strong>, <strong>AT</strong>, <strong>AT_<i>xyz</i></strong>, and <strong>time</strong>.</p>
 				<p><strong>Note:</strong> If Excel won\'t open the file correctly (all data in one cell), download the CSV file to disk,
 					then start Excel and open via menu &rarr; file &rarr; open.
 					OpenOffice Calc will cause less trouble.</p>';

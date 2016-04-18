@@ -40,15 +40,17 @@ class API extends \Piwik\Plugin\API
     	}
     	$getVar = trim((string)\Piwik\Common::getRequestVar('casevar', '', 'string'));
     	$clipServer = ((string)\Piwik\Common::getRequestVar('server', 'no', 'string') !== 'yes');
-    	$clipExtension = ((string)\Piwik\Common::getRequestVar('clip', 'no', 'string') === 'yes');
+    	$clipExtension = ((string)\Piwik\Common::getRequestVar('noclip', 'no', 'string') !== 'yes');
+    	$recodeIndex = ((string)\Piwik\Common::getRequestVar('disindex', 'no', 'string') !== 'yes');
     	$skipNoID = ((string)\Piwik\Common::getRequestVar('skipid', 'no', 'string') === 'yes');
     	$addAggregate = ((string)\Piwik\Common::getRequestVar('aggregate', 'no', 'string') === 'yes');
+    	$structure = (string)\Piwik\Common::getRequestVar('structure', 'case', 'string');  // [case|page]
 
 		// https://developer.piwik.org/guides/security-in-piwik
 		// https://developer.piwik.org/guides/persistence-and-the-mysql-backend
 
 		$sql =
-			'SELECT v.idvisit, l.server_time, l.time_spent_ref_action, a.name
+			'SELECT v.idvisit, l.server_time, l.time_spent_ref_action, a.name, a.idaction
 			FROM '.\Piwik\Common::prefixTable('log_visit').' v
 			LEFT JOIN '.\Piwik\Common::prefixTable('log_link_visit_action').' l ON (v.idvisit = l.idvisit)
 			LEFT JOIN '.\Piwik\Common::prefixTable('log_action').' a ON (a.idaction = l.idaction_url)
@@ -74,7 +76,9 @@ class API extends \Piwik\Plugin\API
     	$cvTimeSum = 0;
     	$cvCaseActions = array();
     	$cvCaseTimes = array();
+    	$cvCaseStamps = array();
     	$visits = array();
+    	$actionIDs = array();  // Collect IDs per action
 		do {
 			$row = $res->fetch();
 			
@@ -87,6 +91,7 @@ class API extends \Piwik\Plugin\API
 				}
 			}
 			$cvFirst = false;
+			
 			// Store new visit
 			if (($row === false) or (($row['idvisit'] !== $cvVisitID) and ($cvVisitID !== null))) {
 				if ($skipNoID and ($cvCaseID === null)) {
@@ -98,6 +103,7 @@ class API extends \Piwik\Plugin\API
 						'start' => $cvCaseStart,
 						'actions' => $cvCaseActions,
 						'times' => $cvCaseTimes,
+						'stamps' => $cvCaseStamps,
 						'time sum' => $cvTimeSum
 					);
 					if (count($cvCaseActions) > $nAction) {
@@ -113,7 +119,7 @@ class API extends \Piwik\Plugin\API
 				break;
 			}
 			
-			// Register new visit
+			// Register new visit (group of actions/page views)
 			if ($row['idvisit'] !== $cvVisitID) {
 				$nAction = 1;
 				$cvVisitID = $row['idvisit'];
@@ -122,6 +128,7 @@ class API extends \Piwik\Plugin\API
 				$cvCaseID = null;
 				$cvCaseActions = array();
     			$cvCaseTimes = array();
+    			$cvCaseStamps = array();
 			} else {
 				$nAction++;
 			}
@@ -141,7 +148,18 @@ class API extends \Piwik\Plugin\API
 						}
 					}
 				}
-			} 
+			}
+			if ($recodeIndex) {
+				$t10 = substr($url, -10);
+				$t11 = substr($url, -11);
+				if (($t10 === '/index.php') or ($t10 === '/index.htm') or ($t11 === '/index.html')) {
+					// No index in subdirectories
+					if (substr_count($url, '/') === 1) {
+						$p = strpos($url, '/');
+						$url = substr($url, 0, $p+1);
+					}
+				}
+			}
 			if ($clipServer) {
 				$p = strpos($url, '/');
 				if ($p !== false) {
@@ -175,82 +193,122 @@ class API extends \Piwik\Plugin\API
 			$cvCaseActions[] = $url;
 			$aTime = (int)$row['time_spent_ref_action'];
 			$cvCaseTimes[] = $aTime;
+			$cvCaseStamps[] = $row['server_time'];
 			$cvTimeSum+= $aTime;
+			
+			// Already know this action?
+			if (!isset($actionIDs[$url])) {
+				$actionIDs[$url] = (int)$row['idaction'];
+			}
 		} while ($row !== false);
 
-		if ($nActionMax > $aLimit) {
-			$nActionMax = $aLimit;
-		}
-		
-		// Collect all possible activities
-		if ($addAggregate) {
-			$hash = array();
-			foreach ($visits as $visit) {
-				foreach ($visit['actions'] as $name) {
-					$hash[$name] = true;
-				}
-			}
-			$allActivities = array_keys($hash);
-			sort($allActivities);
-			
-			// Create table for variable names
-			$aggVarNames = array();
-			foreach ($allActivities as $url) {
-				$aggVarNames[$url] = 'AT_'.preg_replace('/[^a-z0-9]+/i', '_', $url);
-			}
-		}
-
-		// Sort and package into table
+		// Result table
 		$table = new DataTable();
-		foreach ($visits as $visit) {
-			$basic = array(
-				'id' => $visit['id'],
-				'CASE' => $visit['case'],
-				'T0' =>  $visit['start']
-			);
-				
-			// Rearrange data, if ncessary
-			$actions = array();
-			$timesT = array();
-			$timesAT = array();
-			$pages = array();
-			for ($i=0; $i<$nActionMax; $i++) {
-				if (isset($visit['actions'][$i])) {
-					$actions['A'.($i+1)] = $visit['actions'][$i];
-				} else {
-					$actions['A'.($i+1)] = null;
+			
+		if ($structure === 'page') {
+			foreach ($visits as $visit) {
+				$basic = array(
+					'id' => $visit['id'],
+					'CASE' => $visit['case']
+				);
+				$t0 = strtotime($visit['start']);
+					
+				// One row per action
+				$aData = array();
+				foreach ($visit['actions'] as $i => $action) {
+					$aData['pos'] = ($i + 1);
+					$aData['aID'] = (isset($actionIDs[$action]) ? $actionIDs[$action] : -1);
+					$aData['url'] = $action;
+					if (isset($visit['times'][$i+1])) {
+						$aData['time'] = $visit['times'][$i+1];
+					} else {
+						$aData['time'] = null;
+					}
+					$aData['ontime'] = strtotime($visit['stamps'][$i]) - $t0;
+					$aData['astime'] = $visit['stamps'][$i];
+						
+					$table->addRowFromSimpleArray(array_merge(
+						$basic,
+						$aData
+					));
 				}
-				if (isset($visit['times'][$i+1])) {
-					$timesT['T'.($i+1)] = $visit['times'][$i+1];
-				} else {
-					$timesT['T'.($i+1)] = null;
-				}
-				
 			}
 			
+		} else {
+			// Number of actions
+			if ($nActionMax > $aLimit) {
+				$nActionMax = $aLimit;
+			}
+			
+			// Collect all possible activities
 			if ($addAggregate) {
-				foreach ($allActivities as $url) {
-					$timesAT[$aggVarNames[$url]] = null;
-				}
-				foreach ($visit['actions'] as $i => $url) {
-					if ($timesAT[$aggVarNames[$url]] === null) {
-						$timesAT[$aggVarNames[$url]] = (isset($visit['times'][$i+1]) ? $visit['times'][$i+1] : 0);
-					} elseif (isset($visit['times'][$i+1])) {
-						$timesAT[$aggVarNames[$url]]+= $visit['times'][$i+1];
+				$hash = array();
+				foreach ($visits as $visit) {
+					foreach ($visit['actions'] as $name) {
+						$hash[$name] = true;
 					}
 				}
+				$allActivities = array_keys($hash);
+				sort($allActivities);
+				
+				// Create table for variable names
+				$aggVarNames = array();
+				foreach ($allActivities as $url) {
+					$aggVarNames[$url] = 'AT_'.preg_replace('/[^a-z0-9]+/i', '_', $url);
+				}
 			}
-			
-			$table->addRowFromSimpleArray(array_merge(
-				$basic,
-				$actions,
-				$timesT,
-				array('AT' => $visit['time sum']),
-				$timesAT,
-				$pages
-			));
+
+			// Sort and package into table
+			foreach ($visits as $visit) {
+				$basic = array(
+					'id' => $visit['id'],
+					'CASE' => $visit['case'],
+					'T0' =>  $visit['start']
+				);
+					
+				// Rearrange data, if necessary
+				$actions = array();
+				$timesT = array();
+				$timesAT = array();
+				$pages = array();
+				for ($i=0; $i<$nActionMax; $i++) {
+					if (isset($visit['actions'][$i])) {
+						$actions['A'.($i+1)] = $visit['actions'][$i];
+					} else {
+						$actions['A'.($i+1)] = null;
+					}
+					if (isset($visit['times'][$i+1])) {
+						$timesT['T'.($i+1)] = $visit['times'][$i+1];
+					} else {
+						$timesT['T'.($i+1)] = null;
+					}
+					
+				}
+				
+				if ($addAggregate) {
+					foreach ($allActivities as $url) {
+						$timesAT[$aggVarNames[$url]] = null;
+					}
+					foreach ($visit['actions'] as $i => $url) {
+						if ($timesAT[$aggVarNames[$url]] === null) {
+							$timesAT[$aggVarNames[$url]] = (isset($visit['times'][$i+1]) ? $visit['times'][$i+1] : 0);
+						} elseif (isset($visit['times'][$i+1])) {
+							$timesAT[$aggVarNames[$url]]+= $visit['times'][$i+1];
+						}
+					}
+				}
+				
+				$table->addRowFromSimpleArray(array_merge(
+					$basic,
+					$actions,
+					$timesT,
+					array('AT' => $visit['time sum']),
+					$timesAT,
+					$pages
+				));
+			}
 		}
-        
+	        
         return $table;
     }
 }
