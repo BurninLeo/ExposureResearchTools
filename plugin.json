@@ -2,13 +2,15 @@
  "name": "ExposureResearchTools",
  "license": "GPL v3+",
  "version": "0.1.0",
+ "homepage": "https://github.com/BurninLeo/ExposureResearchTools",
  "description": "Download unique visits as CSV, and support merging data with pre-/post surveys.",
+ "keywords": ["data retrieval", "csv", "download", "research", "selective exposure", "tracking"],
  "theme": false,
  "authors": [
      {
          "name": "Dominik J. Leiner",
          "email": "leiner@ifkw.lmu.de",
-         "homepage": ""
+         "homepage": "http://www.ls1.ifkw.uni-muenchen.de/personen/wiss_ma/leiner_dominik/index.html"
      }
  ]
 }
