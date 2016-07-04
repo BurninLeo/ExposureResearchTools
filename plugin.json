@@ -1,0 +1,14 @@
+{
+ "name": "ExposureResearchTools",
+ "license": "GPL v3+",
+ "version": "0.1.0",
+ "description": "Download unique visits as CSV, and support merging data with pre-/post surveys.",
+ "theme": false,
+ "authors": [
+     {
+         "name": "Dominik J. Leiner",
+         "email": "leiner@ifkw.lmu.de",
+         "homepage": ""
+     }
+ ]
+}
