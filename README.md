@@ -2,7 +2,7 @@
 Exposure Research Tools (Piwik Plugin)
 
 This plugin restructures data collected via Piwik to be used in Selective Exposure research.
-It extracts an iditification variable from the first visit's GET request to allow merging survey data with observational data from Piwik.
+When retrieving the data, the tool extracts an identification variable from the first visit's GET request (action) to allow merging survey data with observational data from Piwik.
 
 The tools adds a menu item "Research Tools" -> "Export Visits" to the Piwik menu.
 
