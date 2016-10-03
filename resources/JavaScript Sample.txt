@@ -1,0 +1,134 @@
+<!--
+
+This is JavaScript code that opens a pop-up window within a survey,
+measuring the times when the pop-up was first opened and most recently closed,
+and storing how often this happend.
+
+Please note that the survey must provide 5 hidden inputs to store the respective data.
+The HTML IDs of the inputs must be defined at the beginning of the code.
+
+The time-is-up-message can be changed in the code (near the end).
+
+The URL of the stimulus is changed at the very end of this code.
+Please note that the UNIQUE_NUMBER in the URL must be (auto-)replaced by
+a string or number that will identify the respondent or the questionnaire.
+
+-->
+ 
+<script type="text/javascript">
+<!--
+"use strict";
+var timelimit = 20;  // Time limit for pop-up [seconds], use 0 for "no limit"
+var storage = {
+  "time.page" : "var00001",
+  "time.open" : "var00002",
+  "time.close" : "var00003",
+  "count.open" : "var00004",
+  "count.close" : "var00005"
+}
+var newwin;  // The pop-up window
+var windowOpen = false;  // Is the window currently opened
+
+/**
+ * Stores the current time into one of the internal variables
+ * (that then will be written into the data set, when "next" is clicked)
+ * @param string timeID  The ID of what to store ("time.open", "time.page", ...)
+ * @param boolean Store the last instead the first occurence/time
+ */
+function storeTime(timeID, last) {
+  if (!storage[timeID]) {
+    throw "There is no input defined for " + timeID;
+  }
+  var timeVar = document.getElementById(storage[timeID]);
+  if (!timeVar) {
+   throw "No input found for variable " + storage[timeID];
+  }
+  if (last || !timeVar.value) {
+    var d = new Date();
+    timeVar.value = d.toISOString();
+  }
+}
+
+/**
+ * Detect the last time when the window was closed.
+ */
+function detectClose() {
+  if (newwin) {
+    if (newwin.closed) {
+      if (windowOpen) {
+        windowOpen = false;
+        storeTime("time.close", true);
+        countAction("count.close");
+      }
+    } else {
+      windowOpen = true;
+    }
+  }
+}
+function countAction(id) {
+  if (!storage[id]) {
+    throw "There is no input defined for " + id;
+  }
+  var timeVar = document.getElementById(storage[id]);
+  if (!timeVar) {
+   throw "No input found for variable " + storage[id];
+  }
+  timeVar.value = parseInt(timeVar.value) + 1;
+}
+
+// Store time when the page was opened the first time
+storeTime("time.page", false);
+// Detect whether the window was closed (must be checked regularly)
+window.setInterval(detectClose, 500);
+
+/**
+ * Function to open the pop-up and store the time.
+ */
+function popup(url) {
+  // Parameters for the pop-up
+  var params =
+    "width=" + screen.width +
+    ", height=" + screen.height +
+    ", top=0, left=0" +
+    ", fullscreen=yes" +
+    ", menubar=no" +
+    ", toolbar=no" +
+    ", titlebar=no" +
+    ", scrollbars=yes";
+ 
+  newwin=window.open(url, "sePopUp", params);
+  storeTime("time.open", false);
+  countAction("count.open");
+
+  // Warning message if blocked
+  if (typeof(newwin) == "undefined") {
+    alert("Your browser tries to open:\n\n"+unescape(url)+".\n\nThat's a safe page, but your safety settings prevent to open it. Please disable your pop-up blocker and click the link again.");
+    return;
+  }
+           
+  if (window.focus) {
+    newwin.focus()
+  }
+
+  // Set a time limit, if applicable 
+  if (timelimit > 0) {
+    window.setTimeout(
+      function(){
+        windowOpen = false;
+        newwin.close();
+        storeTime("time.close", true);
+        // Do not count "close"
+        alert("The time for reading the page has expired.\n\n"+"Please click OK to continue.");
+        SoSciTools.submitPage();
+      },
+      timelimit * 1000
+    );
+  }
+  return false;
+}
+</script>
+
+<!-- HTML code for the "open" button -->
+<div style="text-align: center; margin: 1em 0 3em 0; font-size: 120%">
+  <a href="javascript: void(0)" onclick="popup('https://www.example.com?num=UNIQUE_NUMBER');">View Website</a>
+</div>
