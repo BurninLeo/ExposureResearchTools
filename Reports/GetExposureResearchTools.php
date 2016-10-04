@@ -233,9 +233,7 @@ class GetExposureResearchTools extends Base
 				</ul>
 				<p><strong>Note:</strong> Piwik will not record the time spent on the most recent page (activity). This affects <strong>T<i>n</i></strong>, <strong>AT</strong>, <strong>AT_<i>xyz</i></strong>, and <strong>time</strong>.</p>
 				<p><strong>Note:</strong> If Excel won\'t open the file correctly (all data in one cell), download the CSV file to disk,
-					then start Excel and open via menu &rarr; file &rarr; open.
-					OpenOffice Calc will cause less trouble.</p>
-							
+					then start Excel and open via menu &rarr; file &rarr; open. OpenOffice Calc will cause less trouble.</p>
 							
 				<h2>Additional Information</h2>
 				<p>If you\'re interested in doing selective exposure research with this tool, the following may be helpful:</p>
@@ -251,7 +249,6 @@ class GetExposureResearchTools extends Base
 							and to store the times when the pop-up was opened and closed.</p>
 					</li>
 				</ul>';
-			
     }
 
     /**

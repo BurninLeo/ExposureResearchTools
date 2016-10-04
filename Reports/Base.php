@@ -17,3 +17,5 @@ abstract class Base extends Report
         $this->category = 'Research Tools';
     }
 }
+
+?>
