@@ -234,7 +234,23 @@ class GetExposureResearchTools extends Base
 				<p><strong>Note:</strong> Piwik will not record the time spent on the most recent page (activity). This affects <strong>T<i>n</i></strong>, <strong>AT</strong>, <strong>AT_<i>xyz</i></strong>, and <strong>time</strong>.</p>
 				<p><strong>Note:</strong> If Excel won\'t open the file correctly (all data in one cell), download the CSV file to disk,
 					then start Excel and open via menu &rarr; file &rarr; open.
-					OpenOffice Calc will cause less trouble.</p>';
+					OpenOffice Calc will cause less trouble.</p>
+							
+							
+				<h2>Additional Information</h2>
+				<p>If you\'re interested in doing selective exposure research with this tool, the following may be helpful:</p>
+				<ul style="list-style: circle; padding-left: 24px; margin-bottom: 30px">
+					<li>
+						<p>We published a paper about this tool and how to collect SE data with Piwik:</p>
+						<p>Leiner, D. J., Scherr, S., Bartsch, A. (forthcoming). Using Open Source Tools to Measure Online Selective Exposure in Naturalistic Settings. Communication Methods and Measures.</p>
+					</li>
+					<li>
+						<p>There are additional resources on the <a href="https://github.com/BurninLeo/ExposureResearchTools" target="_blank">Plugin Website</a> (on GitHub).</p>
+						<p>Specifically, there\'s a template for SoSci Survey to embed a stimulus presentation (via pop-up) between a pre and post questionnaire.
+							The template takes care of transmitting the respondent ID, so that it appears in the SE data,
+							and to store the times when the pop-up was opened and closed.</p>
+					</li>
+				</ul>';
 			
     }
 
