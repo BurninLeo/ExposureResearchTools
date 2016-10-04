@@ -1,7 +1,7 @@
 {
  "name": "ExposureResearchTools",
  "license": "GPL v3+",
- "version": "0.1.0",
+ "version": "0.1.1",
  "homepage": "https://github.com/BurninLeo/ExposureResearchTools",
  "description": "Download unique visits as CSV, and support merging data with pre-/post surveys. This plugin was developed for research on selective exposure. Please see the Plugin Website (below) for references and detailled instructions.",
  "keywords": ["data retrieval", "csv", "download", "research", "selective exposure", "tracking"],
