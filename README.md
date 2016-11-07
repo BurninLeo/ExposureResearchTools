@@ -10,7 +10,7 @@ The tools adds a menu item "Research Tools" -> "Export Visits" to the Piwik menu
 
 For a detailed discussion of the tool and its application in selective exposure research, please refer to our paper.
 
-Leiner, D. J., Scherr, S., Bartsch, A. (forthcoming). Using Open Source Tools to Measure Online Selective Exposure in Naturalistic Settings. Communication Methods and Measures.
+Leiner, D. J., Scherr, S., & Bartsch, A. (2016). Using Open-Source Tools to Measure Online Selective Exposure in Naturalistic Settings. Communication Methods and Measures, 10(4), 199–216. [doi:10.1080/19312458.2016.1224825](http://doi.org/10.1080/19312458.2016.1224825)
 
 ## Resources
 
