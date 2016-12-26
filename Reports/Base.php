@@ -12,10 +12,7 @@ use Piwik\Plugin\Report;
 
 abstract class Base extends Report
 {
-    protected function init()
-    {
-        $this->category = 'Research Tools';
-    }
+
 }
 
 ?>

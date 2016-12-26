@@ -24,8 +24,15 @@ class GetExposureResearchTools extends Base
     protected function init()
     {
         parent::init();
-
+        
+        // Piwik 2.x
+        $this->category = 'Research Tools';
         $this->name          = 'Export Visits'; // Piwik::translate('ExposureResearchToolsName');
+        
+        // Piwik 3.x
+        $this->categoryId = 'Research Tools';
+        $this->subcategoryId = 'Export Visits';
+        
         $this->dimension     = new ExitPageUrl();
         $this->documentation = Piwik::translate('ExposureResearchToolsDocumentation');
 
@@ -86,7 +93,7 @@ class GetExposureResearchTools extends Base
     {
         return array(); // eg return array(new XyzReport());
     }
-
+    
     /**
      * A report is usually completely automatically rendered for you but you can render the report completely
      * customized if you wish. Just overwrite the method and make sure to return a string containing the content of the
@@ -150,6 +157,10 @@ class GetExposureResearchTools extends Base
 					<input type="hidden" name="filter_limit" value="-1" />
 				</div>
 				<table cellspacing="0" cellpadding="0">
+				<colgroup>
+					<col width="320">
+					</col>
+				</colgroup>
 				<tr>
 					<td style="padding-right: 1em">Limit activities per visit:</td>
 					<td><input type="text" name="vlimit" value="'.$aLimit.'" style="width: 64px" /></td>
@@ -165,31 +176,38 @@ class GetExposureResearchTools extends Base
 						</select>
 					</td>
 				</tr><tr>
-					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
-						<input type="checkbox" name="aggregate" value="yes" checked="checked" />
-						Include aggregate reading times per page (sum per page)<br>
-						<span style="font-size: 85%">(applicable in per-participant structure, only)</span>
-					</label></td>
+					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em">
+						<input type="checkbox" id="aggregate" name="aggregate" value="yes" checked="checked" />
+						<label for="aggregate">
+							Include aggregate reading times per page (sum per page)<br>
+							<span style="font-size: 85%">(applicable in per-participant structure, only)</span>
+						</label>
+					</td>
 				</tr><tr>
-					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
-						<input type="checkbox" name="server" value="yes" />
-						Retain domain name in URLs
-					</label></td>
+					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em">
+						<input type="checkbox" id="var64" name="var64" value="yes" checked="checked" />
+						<label for="var64">SPSS-compatible variable names</label>
+					</td>
 				</tr><tr>
-					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
-						<input type="checkbox" name="noclip" value="yes" />
-						Retain extension and query string in URLs (anything after the file name)
-					</label></td>
+					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em">
+						<input type="checkbox" id="server" name="server" value="yes" />
+						<label for="server">Retain domain name in URLs</label>
+					</td>
 				</tr><tr>
-					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
-						<input type="checkbox" name="disindex" value="yes" />
-						Distinguish index.html, index.htm, index.php, and homepage (/)
-					</label></td>
+					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em">
+						<input type="checkbox" id="noclip" name="noclip" value="yes" />
+						<label for="noclip">Retain extension and query string in URLs (anything after the file name)</label>
+					</td>
 				</tr><tr>
-					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em"><label>
-						<input type="checkbox" name="skipid" value="yes" />
-						Skip visits without subject ID (only applicable if GET variable for subject ID is set)
-					</label></td>
+					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em">
+						<input type="checkbox" id="disindex" name="disindex" value="yes" />
+						<label for="disindex">Distinguish index.html, index.htm, index.php, and homepage (/)</label>
+					</td>
+				</tr><tr>
+					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em">
+						<input type="checkbox" id="skipid" name="skipid" value="yes" />
+						<label for="skipid">Skip visits without subject ID (only applicable if GET variable for subject ID is set)</label>
+					</td>
 				</tr><tr>
 					<td colspan="2" style="padding-top: 0.5em; padding-bottom: 0.5em">
 						<strong>Note:</strong> All available data will be exported, regardless of the period defined above.

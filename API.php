@@ -18,6 +18,74 @@ use Piwik\DataTable\Row;
  */
 class API extends \Piwik\Plugin\API
 {
+	
+	
+	/**
+	 * From: https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Longest_common_substring#PHP
+	 * @param string $string_1
+	 * @param string $string_2
+	 * @return string
+	 */
+	private static function get_longest_common_subsequence($string_1, $string_2)
+	{
+		$string_1_length = strlen($string_1);
+		$string_2_length = strlen($string_2);
+		$return          = '';
+	
+		if ($string_1_length === 0 || $string_2_length === 0)
+		{
+			// No similarities
+			return $return;
+		}
+	
+		$longest_common_subsequence = array();
+	
+		// Initialize the CSL array to assume there are no similarities
+		$longest_common_subsequence = array_fill(0, $string_1_length, array_fill(0, $string_2_length, 0));
+	
+		$largest_size = 0;
+	
+		for ($i = 0; $i < $string_1_length; $i++)
+		{
+			for ($j = 0; $j < $string_2_length; $j++)
+			{
+				// Check every combination of characters
+				if ($string_1[$i] === $string_2[$j])
+				{
+					// These are the same in both strings
+					if ($i === 0 || $j === 0)
+					{
+						// It's the first character, so it's clearly only 1 character long
+						$longest_common_subsequence[$i][$j] = 1;
+					}
+					else
+					{
+						// It's one character longer than the string from the previous character
+						$longest_common_subsequence[$i][$j] = $longest_common_subsequence[$i - 1][$j - 1] + 1;
+					}
+	
+					if ($longest_common_subsequence[$i][$j] > $largest_size)
+					{
+						// Remember this as the largest
+						$largest_size = $longest_common_subsequence[$i][$j];
+						// Wipe any previous results
+						$return       = '';
+						// And then fall through to remember this new value
+					}
+	
+					if ($longest_common_subsequence[$i][$j] === $largest_size)
+					{
+						// Remember the largest string(s)
+						$return = substr($string_1, $i - $largest_size + 1, $largest_size);
+					}
+				}
+				// Else, $CSL should be set to 0, which it was already initialized to
+			}
+		}
+	
+		// Return the list of matches
+		return $return;
+	}
 
     /**
      * Another example method that returns a data table.
@@ -45,6 +113,7 @@ class API extends \Piwik\Plugin\API
     	$skipNoID = ((string)\Piwik\Common::getRequestVar('skipid', 'no', 'string') === 'yes');
     	$addAggregate = ((string)\Piwik\Common::getRequestVar('aggregate', 'no', 'string') === 'yes');
     	$structure = (string)\Piwik\Common::getRequestVar('structure', 'case', 'string');  // [case|page]
+    	$var64 = ((string)\Piwik\Common::getRequestVar('var64', 'no', 'string') === 'yes');
 
 		// https://developer.piwik.org/guides/security-in-piwik
 		// https://developer.piwik.org/guides/persistence-and-the-mysql-backend
@@ -84,6 +153,7 @@ class API extends \Piwik\Plugin\API
 			
 			// Stop processing for empty results
 			if ($row === false) {
+				// ... after the previous visit was registered
 				if ($cvVisitID === null) {
 					// No data at all
 					$table->addRowFromSimpleArray(array('error' => 'no data available', 'site' => $idSite));
@@ -201,6 +271,75 @@ class API extends \Piwik\Plugin\API
 				$actionIDs[$url] = (int)$row['idaction'];
 			}
 		} while ($row !== false);
+		
+		// Variable names for actions
+		$actionNames = array();
+		foreach ($visits as $visit) {
+			foreach ($visit['actions'] as $i => $action) {
+				if (!isset($actionNames[$action])) {
+					if ($action === '/') {
+						$actionNames[$action] = 'index';
+					} else {
+						// Some basic cleaning
+						$actionNames[$action] = preg_replace(array(
+								'/[^a-z0-9]+/i',
+								'/^_+/',
+								'/_+$/',
+								'/__+/'
+							), array(
+								'_',
+								'',
+								'',
+								'_'
+							),
+							$action
+						);
+					}
+				}
+			}
+		}
+		// Sort by original URL
+		ksort($actionNames);
+		// Rename, if applicable
+		if ($var64) {
+			// Find common parts in all actions (except index) and remove
+			$first = array();
+			$common = '';
+			foreach ($actionNames as $id => $name) {
+				if ($id !== 'index') {
+					$first[] = $name;
+				}
+				if (count($first) === 2) {
+					$common = self::get_longest_common_subsequence($first[0], $first[1]);
+					break;
+				}
+			}
+			if (strlen($common) >= 3) {
+				foreach ($actionNames as $id => $name) {
+					if ($id === 'index') {
+						continue;
+					}
+					$common = self::get_longest_common_subsequence($common, $name);
+					if (strlen($common) < 3) {
+						break;
+					}
+				}
+			}
+			// Remove common part
+			if (strlen($common) >= 3) {
+				foreach ($actionNames as $id => $name) {
+					$actionNames[$id] = str_replace($common, '', $name);
+				}
+			}
+			// Then also clip to 60 characters
+			// (makes 63 with prefix AT_
+			foreach ($actionNames as $id => $name) {
+				if (substr($name) > 60) {
+					// TODO: Some time find a better algorith, using word boundaries (_) and skipping word in the middle
+					$actionNames[$id] = substr($name, -60);
+				}
+			}
+		}
 
 		// Result table
 		$table = new DataTable();
@@ -212,7 +351,7 @@ class API extends \Piwik\Plugin\API
 					'CASE' => $visit['case']
 				);
 				$t0 = strtotime($visit['start']);
-					
+				
 				// One row per action
 				$aData = array();
 				foreach ($visit['actions'] as $i => $action) {
@@ -240,21 +379,11 @@ class API extends \Piwik\Plugin\API
 				$nActionMax = $aLimit;
 			}
 			
-			// Collect all possible activities
+			// Variable names for the page-time-variables
 			if ($addAggregate) {
-				$hash = array();
-				foreach ($visits as $visit) {
-					foreach ($visit['actions'] as $name) {
-						$hash[$name] = true;
-					}
-				}
-				$allActivities = array_keys($hash);
-				sort($allActivities);
-				
-				// Create table for variable names
 				$aggVarNames = array();
-				foreach ($allActivities as $url) {
-					$aggVarNames[$url] = 'AT_'.preg_replace('/[^a-z0-9]+/i', '_', $url);
+				foreach ($actionNames as $url => $actionID) {
+					$aggVarNames[$url] = 'AT_'.$actionID;
 				}
 			}
 
