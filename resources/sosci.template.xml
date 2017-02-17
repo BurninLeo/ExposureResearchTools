@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE surveyProject SYSTEM "doctype.survey.dtd">
-<surveyProject version="2.4" timestamp="2016-10-03 11:12:14" program="oFb" progversion="2.6.00-i">
-<title>Piwik Template</title>
-<description />
+<!DOCTYPE surveyContent SYSTEM "https://www.soscisurvey.de/templates/doctype.survey.dtd">
+<surveyContent version="2.4">
+<program>sosci</program>
+<version>2.6.00-i</version>
+<timestamp>2017-02-17 13:05:00</timestamp>
+<title>ExposureResearchTools</title>
+<description>Questions, PHP and JavaScript code to make use of the Piwik PlugIn "ExposureResearchTools" in SoSci Survey (https://plugins.piwik.org/ExposureResearchTools). Please also import the sample questionnaire.</description>
+<language>eng</language>
 <attributes.specific program="ofb">
 <attr id="language">eng</attr>
-<attr id="projectBackground">test</attr>
 </attributes.specific>
 <section>
 <title>Selective Exposure Timing</title>
 <attributes.specific program="ofb">
 <attr id="id">SE</attr>
-<attr id="pos">1</attr>
 </attributes.specific>
 <question>
 <description>SE Timing</description>
@@ -67,14 +69,13 @@
 <inputPosition>right</inputPosition>
 <lead>
 <![CDATA[<p>
-	You will probably want to give the respondent some instructions.
+	 You will probably want to give the respondent some instructions. 
 </p>
 <p>
-	Just go ahead and create a text in any section of the <strong>List of Questions</strong>.
+	Just go ahead and create a text in any section of the <strong>List of Questions</strong>. 
 </p>
 <p>
-	Then drag the text into this page at <strong>Compose Questionnaire</strong>.<br />
-</p>]]>
+	Then drag the text into this page at <strong>Compose Questionnaire</strong>.<br /></p>]]>
 </lead>
 <attributes.specific program="ofb">
 <attr id="id">2</attr>
@@ -92,7 +93,7 @@
 <![CDATA[<script type="text/javascript">
 <!--
 "use strict";
-var timelimit = %timelimit%;  // Time limit for pop-up [seconds], use 0 for "no limit"
+var timelimit = %timeout.time%;  // Time limit for pop-up [seconds], use 0 for "no limit"
 var storage = {
   "time.page" : "%qid%_01",
   "time.open" : "%qid%_02",
@@ -192,7 +193,7 @@ function popup(url) {
         newwin.close();
         storeTime("time.close", true);
         // Do not count "close"
-        alert("The time for reading the page has expired.\n\n"+"Please click OK to continue.");
+        alert("%timeout.message%");
         SoSciTools.submitPage();
       },
       timelimit * 1000
@@ -204,7 +205,7 @@ function popup(url) {
 
 <!-- HTML code for the "open" button -->
 <div style="text-align: center; margin: 1em 0 3em 0; font-size: 120%">
-  <a href="javascript: void(0)" onclick="popup('%url%?tk=%caseToken%&num=%caseNumber%');">View Website</a>
+  <a href="javascript: void(0)" onclick="popup('%link.url%?tk=%caseToken%&amp;num=%caseNumber%');">%link.title%</a>
 </div>]]>
 </lead>
 <attributes.specific program="ofb">
@@ -225,8 +226,7 @@ function popup(url) {
 	 You probably want to ask some questions before presenting the stimulus. 
 </p>
 <p>
-	Add new questions in the <strong>List of Questions</strong>, add new pages in <strong>Compose Questionnaire</strong> and drag the questions on these pages as required.<br />
-</p>]]>
+	Add new questions in the <strong>List of Questions</strong>, add new pages in <strong>Compose Questionnaire</strong> and drag the questions on these pages as required.<br /></p>]]>
 </lead>
 <attributes.specific program="ofb">
 <attr id="id">4</attr>
@@ -242,8 +242,7 @@ function popup(url) {
 <inputPosition>right</inputPosition>
 <lead>
 <![CDATA[<p>
-	 Further questions can, of course, be added after the stimulus presentation.<br />
-</p>]]>
+	 Further questions can, of course, be added after the stimulus presentation.<br /></p>]]>
 </lead>
 <attributes.specific program="ofb">
 <attr id="id">5</attr>
@@ -252,10 +251,6 @@ function popup(url) {
 </attributes.specific>
 </question>
 </section>
-<layoutTexts>
-<layoutText id="default.imprint"><txt lng="eng"><![CDATA[<a href="mailto:info@soscisurvey.de">Dr. Dominik Leiner</a>, 
-SoSci Survey GmbH – 2016]]></txt></layoutText>
-</layoutTexts>
 <questionnaire>
 <title>Fragebogen</title>
 <attributes.specific program="ofb">
@@ -286,9 +281,12 @@ show('SE03', array(
   // ID of the interval variables question (see above)
   '%qid%' =&gt; 'SE01',
   // URL of the stimulus
-  '%url%' =&gt; 'https://www.example.com/stimulus.html',
-  // Time limit in seconds
-  '%timelimit%' =&gt; 20
+  '%link.url%' =&gt; 'https://www.example.com/stimulus.html',
+  '%link.title%' =&gt; 'View Website',
+  // Time limit [seconds]
+  // (set 0 to not limit reading duration)
+  '%timeout.time%' =&gt; 20,
+  '%timeout.message%' =&gt; 'The time for reading the page has expired.\n\n Please click OK to continue.'
 ));
 ]]&gt;&lt;/php&gt;
 &lt;/page&gt;
@@ -319,4 +317,4 @@ show('SE03', array(
 </attr>
 </attributes.specific>
 </questionnaire>
-</surveyProject>
+</surveyContent>
