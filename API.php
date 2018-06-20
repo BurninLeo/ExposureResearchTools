@@ -334,7 +334,7 @@ class API extends \Piwik\Plugin\API
 			// Then also clip to 60 characters
 			// (makes 63 with prefix AT_
 			foreach ($actionNames as $id => $name) {
-				if (substr($name) > 60) {
+				if (strlen($name) > 60) {
 					// TODO: Some time find a better algorith, using word boundaries (_) and skipping word in the middle
 					$actionNames[$id] = substr($name, -60);
 				}
@@ -381,7 +381,7 @@ class API extends \Piwik\Plugin\API
 			
 			// Variable names for the page-time-variables
 			if ($addAggregate) {
-				$aggVarNames = array();
+				$aggVarNames = [];
 				foreach ($actionNames as $url => $actionID) {
 					$aggVarNames[$url] = 'AT_'.$actionID;
 				}
@@ -396,10 +396,10 @@ class API extends \Piwik\Plugin\API
 				);
 					
 				// Rearrange data, if necessary
-				$actions = array();
-				$timesT = array();
-				$timesAT = array();
-				$pages = array();
+				$actions = [];
+				$timesT = [];
+				$timesAT = [];
+				$pages = [];
 				for ($i=0; $i<$nActionMax; $i++) {
 					if (isset($visit['actions'][$i])) {
 						$actions['A'.($i+1)] = $visit['actions'][$i];
@@ -415,7 +415,7 @@ class API extends \Piwik\Plugin\API
 				}
 				
 				if ($addAggregate) {
-					foreach ($allActivities as $url) {
+					foreach (array_keys($aggVarNames) as $url) {
 						$timesAT[$aggVarNames[$url]] = null;
 					}
 					foreach ($visit['actions'] as $i => $url) {
