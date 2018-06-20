@@ -258,7 +258,7 @@ class GetExposureResearchTools extends Base
 				<ul style="list-style: circle; padding-left: 24px; margin-bottom: 30px">
 					<li>
 						<p>We published a paper about this tool and how to collect SE data with Matomo:</p>
-						<p>Leiner, D. J., Scherr, S., Bartsch, A. (forthcoming). Using Open Source Tools to Measure Online Selective Exposure in Naturalistic Settings. Communication Methods and Measures.</p>
+						<p>Leiner, D. J., Scherr, S., & Bartsch, A. (2016). Using Open-Source Tools to Measure Online Selective Exposure in Naturalistic Settings. Communication Methods and Measures, 10(4), 199–216. doi:<a href="http://doi.org/10.1080/19312458.2016.1224825">10.1080/19312458.2016.1224825</a></p>
 					</li>
 					<li>
 						<p>There are additional resources on the <a href="https://github.com/BurninLeo/ExposureResearchTools" target="_blank">Plugin Website</a> (on GitHub).</p>
