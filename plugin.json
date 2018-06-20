@@ -18,7 +18,7 @@
     	"docs": "https://github.com/BurninLeo/ExposureResearchTools"
 	},
 	"require": {
-		"piwik": ">=2.16.0",
+		"piwik": ">=2.16.0,<4.0.0-b1",
 		"php": ">=5.3.0"
 	}
 }

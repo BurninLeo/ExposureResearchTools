@@ -7,3 +7,5 @@
 * 0.1.7 Compatibility with Piwik 3.x
   * Changes report to appear in Piwik 3.x
   * Shorten variable names for page times to comply with SPSS (max. 64 characters)
+* 0.1.8 Cleaning
+  * Removed two undefined variable issues that triggered error log entries
